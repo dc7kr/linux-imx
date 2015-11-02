@@ -62,6 +62,7 @@ snd-soc-imx-mc13783-objs := imx-mc13783.o
 snd-soc-imx-hdmi-objs := imx-hdmi.o
 snd-soc-imx-si476x-objs := imx-si476x.o
 snd-soc-imx-mqs-objs := imx-mqs.o
+snd-soc-imx-tlv320-objs := imx-tlv320.o
 
 obj-$(CONFIG_SND_SOC_EUKREA_TLV320) += snd-soc-eukrea-tlv320.o
 obj-$(CONFIG_SND_SOC_PHYCORE_AC97) += snd-soc-phycore-ac97.o
@@ -69,6 +70,7 @@ obj-$(CONFIG_SND_SOC_MX27VIS_AIC32X4) += snd-soc-mx27vis-aic32x4.o
 obj-$(CONFIG_SND_MXC_SOC_WM1133_EV1) += snd-soc-wm1133-ev1.o
 obj-$(CONFIG_SND_SOC_IMX_CS42888) += snd-soc-imx-cs42888.o
 obj-$(CONFIG_SND_SOC_IMX_SGTL5000) += snd-soc-imx-sgtl5000.o
+obj-$(CONFIG_SND_SOC_IMX_TLV320) += snd-soc-imx-tlv320.o
 obj-$(CONFIG_SND_SOC_IMX_WM8962) += snd-soc-imx-wm8962.o
 obj-$(CONFIG_SND_SOC_IMX_SPDIF) += snd-soc-imx-spdif.o
 obj-$(CONFIG_SND_SOC_IMX_MC13783) += snd-soc-imx-mc13783.o
