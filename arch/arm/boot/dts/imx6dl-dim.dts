@@ -1,0 +1,7 @@
+/dts-v1/;
+
+#include "imx6dl-dim.dtsi"
+
+/ {
+	model = "DIM i.MX6 DualLite";
+};

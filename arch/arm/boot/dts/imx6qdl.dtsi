@@ -783,17 +783,6 @@
 				reg = <0x0217c000 0x4000>;
 			};
 
-			usbotg: usb@02184000 {
-				compatible = "fsl,imx6q-usb", "fsl,imx27-usb";
-				reg = <0x02184000 0x200>;
-				interrupts = <0 43 0x04>;
-				clocks = <&clks 162>;
-				fsl,usbphy = <&usbphy1>;
-				fsl,usbmisc = <&usbmisc 0>;
-				fsl,anatop = <&anatop>;
-				status = "disabled";
-			};
-
 			usbh1: usb@02184200 {
 				compatible = "fsl,imx6q-usb", "fsl,imx27-usb";
 				reg = <0x02184200 0x200>;
@@ -824,6 +813,17 @@
 				fsl,usbmisc = <&usbmisc 3>;
 				phy_type = "hsic";
 				fsl,usbphy = <&usbphy_nop2>;
+				fsl,anatop = <&anatop>;
+				status = "disabled";
+			};
+
+			usbotg: usb@02184000 {
+				compatible = "fsl,imx6q-usb", "fsl,imx27-usb";
+				reg = <0x02184000 0x200>;
+				interrupts = <0 43 0x04>;
+				clocks = <&clks 162>;
+				fsl,usbphy = <&usbphy1>;
+				fsl,usbmisc = <&usbmisc 0>;
 				fsl,anatop = <&anatop>;
 				status = "disabled";
 			};
@@ -1384,6 +1384,13 @@
 			fsl,pins = <
 				MX6QDL_PAD_GPIO_3__I2C3_SCL  0x4001b8b1
 				MX6QDL_PAD_EIM_D18__I2C3_SDA 0x4001b8b1
+			>;
+		};
+
+		pinctrl_i2c3_5: i2c3grp-5 {
+			fsl,pins = <
+				MX6QDL_PAD_GPIO_5__I2C3_SCL  0x4001b8b1
+				MX6QDL_PAD_GPIO_6__I2C3_SDA 0x4001b8b1
 			>;
 		};
 	};

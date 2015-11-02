@@ -1,0 +1,7 @@
+/dts-v1/;
+
+#include "imx6dl-mediabox.dtsi"
+
+/ {
+	model = "MediaBox i.MX6 DualLite";
+};

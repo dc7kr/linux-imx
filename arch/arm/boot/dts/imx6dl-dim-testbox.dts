@@ -1,0 +1,15 @@
+/dts-v1/;
+
+#include "imx6dl-dim.dtsi"
+
+/ {
+	model = "DIM i.MX6 DualLite Testbox";
+};
+
+&reg_usb_h1_vbus {
+	regulator-boot-on;
+};
+
+&usbh1 {
+	status = "okay";
+};

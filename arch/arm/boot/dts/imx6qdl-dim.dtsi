@@ -1,0 +1,442 @@
+#include <dt-bindings/gpio/gpio.h>
+
+#include "imx6qdl.dtsi"
+
+/ {
+	aliases {
+		mxcfb0 = &mxcfb1;
+	};
+
+	memory {
+		reg = <0x10000000 0x80000000>;
+	};
+
+	lcd@0 {
+		compatible = "fsl,lcd";
+		ipu_id = <0>;
+		disp_id = <0>;
+		default_ifmt = "BGR24";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_ipu1_1>;
+		status = "okay";
+	};
+
+	mxcfb1: fb@0 {
+		compatible = "fsl,mxc_sdc_fb";
+		default_bpp = <32>;
+		disp_dev = "lcd";
+		int_clk = <0>;
+		interface_pix_fmt = "BGR24";
+		late_init = <0>;
+		status = "okay";
+	};
+
+	regulators {
+		compatible = "simple-bus";
+
+		reg_1p2v: 1p2v {
+			compatible = "regulator-fixed";
+			regulator-name = "1P2V";
+			regulator-min-microvolt = <1200000>;
+			regulator-max-microvolt = <1200000>;
+			regulator-always-on;
+		};
+
+		reg_1p8v: 1p8v {
+			compatible = "regulator-fixed";
+			regulator-name = "1P8V";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			regulator-always-on;
+		};
+
+		reg_2p5v: 2p5v {
+			compatible = "regulator-fixed";
+			regulator-name = "2P5V";
+			regulator-min-microvolt = <2500000>;
+			regulator-max-microvolt = <2500000>;
+			regulator-always-on;
+		};
+
+		reg_3p3v: 3p3v {
+			compatible = "regulator-fixed";
+			regulator-name = "3P3V";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-always-on;
+		};
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			compatible = "regulator-fixed";
+			enable-active-high;
+			gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
+			pinctrl-0 = <&pinctrl_usb_otg_vbus>;
+			pinctrl-names = "default";
+			regulator-max-microvolt = <5000000>;
+			regulator-min-microvolt = <5000000>;
+			regulator-name = "usb_otg_vbus";
+			startup-delay-us = <3600>;
+		};
+
+		reg_usb_h1_vbus: usb_h1_vbus {
+			compatible = "regulator-fixed";
+			enable-active-high;
+			gpio = <&gpio3 31 GPIO_ACTIVE_HIGH>;
+			pinctrl-0 = <&pinctrl_usb_h1_vbus>;
+			pinctrl-names = "default";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			regulator-name = "usb_h1_vbus";
+			startup-delay-us = <3600>;
+		};
+	};
+
+	sound {
+		compatible = "fsl,imx-audio-tlv320";
+		model = "tlv320aic3104";
+		ssi-controller = <&ssi1>;
+		audio-codec = <&codec>;
+		audio-routing =
+			"Headphone Jack",	"HPLOUT",
+			"Headphone Jack",	"HPROUT",
+			"MIC2L",		"Mic Jack",
+			"MIC2R",		"Mic Jack";
+		mux-int-port = <1>;
+		mux-ext-port = <3>;
+	};
+
+	v4l2_cap {
+		compatible = "fsl,imx6q-v4l2-capture";
+		csi_id = <0>;
+		ipu_id = <0>; /* IPU 1 */
+		mclk_source = <0>;
+		status = "okay";
+	};
+};
+
+/*
+ * connected to TLV320AIC3104IRHBR (audio codec) and WiBear11n-DF1 (bluetooth)
+ */
+&audmux {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_audmux_2 &pinctrl_audmux_2_dim &pinctrl_audmux_5_dim>;
+	status = "okay";
+};
+
+/* connected to SPC560C50L3 (micro controller) */
+&ecspi1 {
+        fsl,spi-num-chipselects = <2>;
+        cs-gpios = <&gpio2 30 0>, <&gpio3 19 0>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_ecspi1_1 &pinctrl_ecspi1_cs_1 &pinctrl_ecspi1_dim>;
+        status = "okay";
+
+        spidev@0x00 {
+                compatible = "spidev";
+                spi-max-frequency = <1000000>;
+                reg = <0>;
+        };
+
+        flash@0x01 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+                compatible = "m25p40";
+                spi-max-frequency = <1000000>;
+                reg = <1>;
+
+		partition@00000 {
+			label = "u-boot";
+			reg = <0x00000 0x60000>;
+		};
+		partition@60000 {
+			label = "u-boot-env";
+			reg = <0x60000 0x20000>;
+		};
+        };
+};
+
+/* connected to BCM89810 (ethernet) */
+&fec {
+	clocks = <&clks 117>, <&clks 117>, <&clks 190>, <&clks 177>,
+		<&clks 190>;
+	clock-names = "ipg", "ahb", "ptp", "enet_out", "enet_clk_ref";
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_enet_1 &pinctrl_enet_dim>;
+	phy-id = <0>;
+        phy-mode = "rgmii";
+/*
+ * According to BCM89810 reference manual (10ms + 20 us + 2 us + some margin)
+ * are enough but FEC driver delays in ms units (see fec_main.c), so delaying
+ * for 15ms.
+ */
+        phy-reset-duration = <15>;
+/* pin U21 ENET_CRS_DV in GPIO1_25 configuration is PHY reset (active low) */
+        phy-reset-gpios = <&gpio1 25 GPIO_ACTIVE_LOW>;
+        status = "okay";
+};
+
+/*
+ * disable this for the moment since there is the wrong Toshiba chip on the
+ * CPU board
+ */
+/* connected to TC358748XBG (rgb->csi) */
+&i2c2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2_2>;
+	clock-frequency = <100000>;
+	status = "okay";
+
+	rgb2csi: tc35874x@0e {
+		AVDD-supply = <&reg_1p2v>;
+		DOVDD-supply = <&reg_3p3v>;
+		DVDD-supply = <&reg_1p2v>;
+		compatible = "tc35874x";
+		clock-names = "clk_ref";
+		clocks = <&clks 200>;
+		mclk = <24750000>;
+		mclk_source = <0>;
+		reg = <0xe>;
+                reset-delay-us = <10001>;
+                reset-gpios = <&gpio6 14 GPIO_ACTIVE_LOW>;
+	};
+};
+
+/* connected to TLV320AIC3104IRHBR (audio codec) */
+&i2c3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c3_dim>;
+	clock-frequency = <100000>;
+	status = "okay";
+
+	codec: tlv320aic3104@18 {
+		compatible = "ti,tlv320aic3104";
+		AVDD-supply = <&reg_3p3v>;
+		DVDD-supply = <&reg_1p8v>;
+		DRVDD-supply = <&reg_3p3v>;
+		IOVDD-supply = <&reg_1p8v>;
+		clock-frequency = <11000000>;
+		clocks = <&clks 169>;
+		gpio-reset = <&gpio2 25 0>;
+		reg = <0x18>;
+	};
+};
+
+&iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog>;
+
+	imx6qdl-dim {
+		pinctrl_audmux_2_dim: audmux2grp {
+			fsl,pins = <
+				/* I2S1_CLK */
+				MX6QDL_PAD_GPIO_0__CCM_CLKO1		0x000b0
+			>;
+		};
+
+		pinctrl_audmux_5_dim: audmux5grg {
+			fsl,pins = <
+				MX6QDL_PAD_KEY_COL0__AUD5_TXC		0x130b0
+				MX6QDL_PAD_KEY_ROW0__AUD5_TXD		0x110b0
+				MX6QDL_PAD_KEY_COL1__AUD5_TXFS		0x130b0
+				MX6QDL_PAD_KEY_ROW1__AUD5_RXD		0x130b0
+				/* I2S2_CLK */
+				MX6QDL_PAD_GPIO_3__GPIO1_IO03		0x1b0b0
+			>;
+		};
+
+		pinctrl_ecspi1_dim: ecspi1grp {
+			fsl,pins = <
+				/* SPI1_CS0 SPC560C50L3C6E0Y (micro controller) */
+				MX6QDL_PAD_EIM_EB2__GPIO2_IO30		0x1b0b0
+				/* SPI1_INT */
+				MX6QDL_PAD_GPIO_17__GPIO7_IO12		0x1b0b0
+				/* SPI1_BF */
+				MX6QDL_PAD_GPIO_18__GPIO7_IO13		0x1b0b0
+			>;
+		};
+
+		pinctrl_enet_dim: enetgrp {
+			fsl,pins = <
+				/* RGMII_RST */
+				MX6QDL_PAD_ENET_CRS_DV__GPIO1_IO25	0x108b0
+				/* ETH_WOL_INT (not connected on DIM) */
+				MX6QDL_PAD_ENET_TX_EN__GPIO1_IO28	0x1b0b0
+			>;
+		};
+
+		pinctrl_hog: hoggrp {
+			fsl,pins = <
+				/* NEO-M8N reset (gps) */
+				MX6QDL_PAD_SD1_DAT2__GPIO1_IO19		0x1b0b0
+				/* SPC560C50L3C6E0Y boot (micro controller) */
+				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16	0x1b0b0
+				/* SPC560C50L3C6E0Y reset (micro controller) */
+				MX6QDL_PAD_GPIO_4__GPIO1_IO04		0x1b0b0
+				/* TC358748XBG reset (rgb->csi) */
+				MX6QDL_PAD_NANDF_CS1__GPIO6_IO14	0x1b0b0
+				/* TC358748XBG reference clock (rgb->csi) */
+				MX6QDL_PAD_NANDF_CS2__CCM_CLKO2		0x1b0b0
+				/* TLV320AIC3104IRHBR reset (audio codec) */
+				MX6QDL_PAD_EIM_OE__GPIO2_IO25		0x1b0b0
+				/* WiBear 11n-DF1 reset (bluetooth, wifi) */
+				MX6QDL_PAD_CSI0_DAT9__GPIO5_IO27	0x1b0b0
+			>;
+		};
+
+		pinctrl_i2c3_dim: i2c3grp {
+			/* If SION (bit 30) is not set, audio is not working! */
+			fsl,pins = <
+				MX6QDL_PAD_GPIO_5__I2C3_SCL		0x4001b8b1
+				MX6QDL_PAD_GPIO_6__I2C3_SDA		0x4001b8b1
+			>;
+		};
+
+		pinctrl_uart3_dim: uart3grp {
+			fsl,pins = <
+				MX6QDL_PAD_EIM_D24__UART3_TX_DATA	0x1b0b1
+				MX6QDL_PAD_EIM_D25__UART3_RX_DATA	0x1b0b1
+			>;
+		};
+
+		pinctrl_uart4_dim: uart4grp {
+			fsl,pins = <
+				MX6QDL_PAD_CSI0_DAT12__UART4_TX_DATA	0x1b0b1
+				MX6QDL_PAD_CSI0_DAT13__UART4_RX_DATA	0x1b0b1
+			>;
+		};
+
+		pinctrl_usb_h1_dim: usbh1grp {
+			fsl,pins = <
+				/* USB_H1_OC */
+				//MX6QDL_PAD_EIM_D30__GPIO3_IO30 	0x10030
+				MX6QDL_PAD_EIM_D30__USB_H1_OC 		0x1b0b0
+				/* TOBY2 reset (lte) */
+				MX6QDL_PAD_SD1_DAT1__GPIO1_IO17 	0x400100b0
+			>;
+		};
+
+		pinctrl_usb_h1_vbus: usbh1vbusgrp {
+			fsl,pins = <
+				/* USB_H1_PWR_EN */
+				MX6QDL_PAD_EIM_D31__GPIO3_IO31		0x100b0
+			>;
+		};
+
+		pinctrl_usbotg_dim: usbotggrp {
+			fsl,pins = <
+				MX6QDL_PAD_GPIO_1__USB_OTG_ID		0x17059
+				/* USB_OTG_OC */
+				//MX6QDL_PAD_GPIO_9__GPIO1_IO09		0x10030
+				MX6QDL_PAD_GPIO_9__GPIO1_IO09		0x1b0b0
+			>;
+		};
+
+		pinctrl_usb_otg_vbus: usbotgvbusgrp {
+			fsl,pins = <
+				/* USB_OTG_PWR_EN */
+				MX6QDL_PAD_EIM_D22__GPIO3_IO22		0x100b0
+			>;
+		};
+
+		/* optimized for 3.3 V, 50 Ohm and 50 MHz */
+		pinctrl_usdhc3_dim: usdhc3grp {
+			fsl,pins = <
+				MX6QDL_PAD_SD3_RST__SD3_RESET		0x17059
+			>;
+		};
+	};
+};
+
+&mipi_csi {
+	csi_id = <0>;
+	ipu_id = <0>; /* IPU 1 */
+	lanes = <1>;
+	status = "okay";
+	v_channel = <0>;
+};
+
+/* connected to TLV320AIC3104IRHBR (audio codec) */
+&ssi1 {
+	fsl,mode = "i2s-slave";
+	status = "okay";
+};
+
+/* connected to WiBear11n-DF1 (bluetooth) */
+&ssi2 {
+	fsl,mode = "i2s-slave";
+	status = "okay";
+};
+
+/* connected to NEO-M8N (gps) */
+&uart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1_1>;
+	status = "okay";
+};
+
+/* UART on J3 connector */
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2_1>;
+	status = "okay";
+};
+
+/* UART on CPU module */
+&uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart3_dim>;
+	status = "okay";
+};
+
+/* connected to SPC560C50L3 (micro controller) */
+&uart4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4_dim>;
+	status = "okay";
+};
+
+/* connected to TOBY2 (umts) */
+&usbh1 {
+	dr_mode = "host";
+	pinctrl-0 = <&pinctrl_usb_h1_dim>;
+	pinctrl-names = "default";
+	status = "okay";
+	vbus-supply = <&reg_usb_h1_vbus>;
+};
+
+/* connected to X7 */
+&usbotg {
+	disable-over-current;
+	dr_mode = "otg";
+	pinctrl-0 = <&pinctrl_usbotg_dim>;
+	pinctrl-names = "default";
+	status = "okay";
+	vbus-supply = <&reg_usb_otg_vbus>;
+};
+
+/* connected to WiBear 11n-DF1 (bluetooth, wifi) */
+&usdhc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2_2>;
+	bus-width = <4>;
+	status = "okay";
+};
+
+/* connected to BWAMGTB11A08GI (emmc) */
+&usdhc3 {
+        bus-width = <8>;
+	no-1-8-v;
+	non-removable;
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_usdhc3_1 &pinctrl_usdhc3_dim>;
+        status = "disabled";
+};
+
+/* uSD slot on CPU module */
+&usdhc4 {
+	bus-width = <4>;
+	no-1-8-v;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc4_2>;
+	status = "okay";
+};

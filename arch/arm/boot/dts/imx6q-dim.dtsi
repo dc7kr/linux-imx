@@ -1,0 +1,68 @@
+#include "imx6q.dtsi"
+#include "imx6qdl-dim.dtsi"
+
+/ {
+	compatible = "ger,imx6q-dim", "fsl,imx6q";
+
+#if 0
+	aliases {
+		mxcfb1 = &mxcfb2;
+	};
+
+	mxcfb2: fb@1 {
+		compatible = "fsl,mxc_sdc_fb";
+		default_bpp = <32>;
+		disp_dev = "ldb";
+		int_clk = <0>;
+		interface_pix_fmt = "BGR24";
+		late_init = <0>;
+		mode_str ="h42_800";
+		status = "disabled";
+	};
+#endif
+};
+
+#if 0
+&ldb {
+	status = "okay";
+
+	lvds-channel@0 {
+		crtc = "ipu2-di0";
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		primary;
+		reg = <0>;
+		status = "okay";
+
+		display-timings {
+			native-mode = <&h24_1024>;
+
+			h24_1024: h24_1024x480 {
+				clock-frequency = <33333333>;
+				de-active = <1>;
+				hactive = <1024>;
+				hback-porch = <11>;
+				hfront-porch = <11>;
+				hsync-active = <0>;
+				hsync-len = <10>;
+				pixelclk-active = <0>;
+				vactive = <480>;
+				vback-porch = <29>;
+				vfront-porch = <13>;
+				vsync-active = <0>;
+				vsync-len = <3>;
+			};
+		};
+	};
+
+	lvds-channel@1 {
+		crtc = "ipu2-di1";
+		reg = <1>;
+		status = "disabled";
+	};
+};
+#endif
+
+&mxcfb1 {
+	mode_str ="h24_1024_q";
+};

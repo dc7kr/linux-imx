@@ -1,0 +1,10 @@
+#include "imx6q.dtsi"
+#include "imx6qdl-mediabox.dtsi"
+
+/ {
+	compatible = "ger,imx6q-mediabox", "fsl,imx6q";
+};
+
+&mxcfb1 {
+	mode_str ="h42_800_q";
+};

@@ -1,6 +1,10 @@
 ifeq ($(CONFIG_OF),y)
 
 dtb-$(CONFIG_ARCH_MXC) += \
+	imx6dl-mediabox.dtb \
+	imx6dl-dim.dtb \
+	imx6q-dim.dtb \
+	imx6q-mediabox.dtb
 
 targets += dtbs
 targets += $(dtb-y)
