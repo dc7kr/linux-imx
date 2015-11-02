@@ -733,8 +733,9 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 	 * Let's initially set up CLKO with OSC24M, since this configuration
 	 * is widely used by imx6q board designs to clock audio codec.
 	 */
-	imx_clk_set_parent(clk[cko2_sel], clk[osc]);
-	imx_clk_set_parent(clk[cko], clk[cko2]);
+	imx_clk_set_parent(clk[cko2_sel], clk[hsi_tx]);
+	imx_clk_set_parent(clk[cko1_sel], clk[ipg]);
+	imx_clk_set_parent(clk[cko], clk[cko1]);
 
 	/* Audio clocks */
 	imx_clk_set_parent(clk[ssi1_sel], clk[pll4_audio_div]);
